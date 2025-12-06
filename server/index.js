@@ -1,6 +1,7 @@
 import express from 'express'
 import cors from 'cors'
 import dotenv from 'dotenv'
+import { prisma } from './lib/prisma.js'
 
 // Load environment variables
 dotenv.config()
@@ -22,6 +23,23 @@ app.get('/api/health', (req, res) => {
     status: 'ok',
     timestamp: new Date().toISOString()
   })
+})
+
+// Test database connection
+app.get('/api/test-db', async (req, res) => {
+  try {
+    await prisma.$connect()
+    res.json({ 
+      status: 'success',
+      message: 'Database connected successfully!'
+    })
+  } catch (error) {
+    res.status(500).json({ 
+      status: 'error',
+      message: 'Database connection failed',
+      error: error.message
+    })
+  }
 })
 
 // Start server
