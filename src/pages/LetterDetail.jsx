@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import ProtectedRoute from '../components/ProtectedRoute'
+import ConfirmationDialog from '../components/ConfirmationDialog'
 import { lettersAPI } from '../lib/api/letters.js'
 
 function LetterDetail() {
@@ -67,23 +68,61 @@ function LetterDetail() {
   const handleDelete = async () => {
     try {
       setDeleting(true)
+      setError(null)
       const response = await lettersAPI.delete(id)
       
       if (response.success) {
-        navigate('/dashboard')
+        // Navigate to dashboard with success message
+        navigate('/dashboard', { 
+          state: { message: 'Letter deleted successfully' } 
+        })
       } else {
-        setError(response.message || 'Failed to delete letter')
+        // Handle API error response
+        const errorMsg = response.message || 'Failed to delete letter'
+        setError(errorMsg)
         setShowDeleteConfirm(false)
       }
     } catch (error) {
-      const errorMessage = error.response?.data?.message || 
-                         error.message || 
-                         'An error occurred while deleting the letter'
+      // Enhanced error handling
+      let errorMessage = 'An error occurred while deleting the letter'
+      
+      if (error.response) {
+        const status = error.response.status
+        const apiMessage = error.response?.data?.message
+        
+        if (status === 404) {
+          errorMessage = 'Letter not found. It may have already been deleted.'
+        } else if (status === 401 || status === 403) {
+          errorMessage = "You don't have permission to delete this letter."
+        } else if (status === 400 && apiMessage) {
+          // Check if it's about delivered letters
+          if (apiMessage.toLowerCase().includes('delivered')) {
+            errorMessage = 'This letter has already been delivered and cannot be deleted.'
+          } else {
+            errorMessage = apiMessage
+          }
+        } else if (apiMessage) {
+          errorMessage = apiMessage
+        }
+      } else if (error.message) {
+        // Network error or other error
+        if (error.message.includes('Network') || error.message.includes('network')) {
+          errorMessage = 'Network error. Please check your connection and try again.'
+        } else {
+          errorMessage = error.message
+        }
+      }
+      
       setError(errorMessage)
       setShowDeleteConfirm(false)
     } finally {
       setDeleting(false)
     }
+  }
+
+  const handleCancelDelete = () => {
+    setShowDeleteConfirm(false)
+    setError(null)
   }
 
   const daysUntilDelivery = letter ? calculateDaysUntilDelivery(letter.deliveryDate) : 0
@@ -231,32 +270,16 @@ function LetterDetail() {
           )}
 
           {/* Delete Confirmation Dialog */}
-          {showDeleteConfirm && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-              <div className="bg-slate-800 rounded-xl p-6 max-w-md w-full border border-white/10">
-                <h3 className="text-xl font-bold text-white mb-4">Confirm Delete</h3>
-                <p className="text-purple-200 mb-6">
-                  Are you sure you want to delete this letter? This action cannot be undone.
-                </p>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setShowDeleteConfirm(false)}
-                    disabled={deleting}
-                    className="flex-1 px-4 py-2 bg-white/5 border border-white/20 text-white rounded-lg hover:bg-white/10 transition disabled:opacity-50"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleDelete}
-                    disabled={deleting}
-                    className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition disabled:opacity-50"
-                  >
-                    {deleting ? 'Deleting...' : 'Delete'}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+          <ConfirmationDialog
+            isOpen={showDeleteConfirm}
+            title="Delete Letter"
+            message="Are you sure you want to delete this letter? This action cannot be undone."
+            confirmText="Delete"
+            cancelText="Cancel"
+            onConfirm={handleDelete}
+            onCancel={handleCancelDelete}
+            isLoading={deleting}
+          />
         </div>
       </div>
     </ProtectedRoute>
