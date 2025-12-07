@@ -1,23 +1,31 @@
 import express from 'express'
 import { prisma } from '../lib/prisma.js'
+import { authenticate } from '../middleware/auth.js'
 
 const router = express.Router()
 
-// GET /api/letters - Get all letters (for testing)
+// All routes require authentication
+router.use(authenticate)
+
+// GET /api/letters - Get all letters for the authenticated user
 router.get('/', async (req, res) => {
   try {
     const letters = await prisma.letter.findMany({
+      where: {
+        userId: req.userId
+      },
       orderBy: {
         createdAt: 'desc'
       },
-      include: {
-        user: {
-          select: {
-            id: true,
-            email: true,
-            name: true
-          }
-        }
+      select: {
+        id: true,
+        title: true,
+        content: true,
+        deliveryDate: true,
+        createdAt: true,
+        updatedAt: true,
+        deliveredAt: true,
+        isDelivered: true
       }
     })
     
@@ -35,21 +43,25 @@ router.get('/', async (req, res) => {
   }
 })
 
-// GET /api/letters/:id - Get a single letter
+// GET /api/letters/:id - Get a single letter (only if it belongs to the user)
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params
     
-    const letter = await prisma.letter.findUnique({
-      where: { id },
-      include: {
-        user: {
-          select: {
-            id: true,
-            email: true,
-            name: true
-          }
-        }
+    const letter = await prisma.letter.findFirst({
+      where: {
+        id,
+        userId: req.userId // Ensure user owns this letter
+      },
+      select: {
+        id: true,
+        title: true,
+        content: true,
+        deliveryDate: true,
+        createdAt: true,
+        updatedAt: true,
+        deliveredAt: true,
+        isDelivered: true
       }
     })
     
@@ -73,16 +85,16 @@ router.get('/:id', async (req, res) => {
   }
 })
 
-// POST /api/letters - Create a new letter (for testing - no auth yet)
+// POST /api/letters - Create a new letter (for authenticated user)
 router.post('/', async (req, res) => {
   try {
-    const { userId, title, content, deliveryDate } = req.body
+    const { title, content, deliveryDate } = req.body
     
     // Basic validation
-    if (!userId || !content || !deliveryDate) {
+    if (!content || !deliveryDate) {
       return res.status(400).json({
         success: false,
-        message: 'Missing required fields: userId, content, deliveryDate'
+        message: 'Missing required fields: content, deliveryDate'
       })
     }
     
@@ -95,33 +107,23 @@ router.post('/', async (req, res) => {
       })
     }
     
-    // Check if user exists
-    const user = await prisma.user.findUnique({
-      where: { id: userId }
-    })
-    
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found'
-      })
-    }
-    
+    // Create letter for authenticated user
     const letter = await prisma.letter.create({
       data: {
-        userId,
+        userId: req.userId, // Use authenticated user's ID
         title: title || null,
         content,
         deliveryDate: delivery
       },
-      include: {
-        user: {
-          select: {
-            id: true,
-            email: true,
-            name: true
-          }
-        }
+      select: {
+        id: true,
+        title: true,
+        content: true,
+        deliveryDate: true,
+        createdAt: true,
+        updatedAt: true,
+        deliveredAt: true,
+        isDelivered: true
       }
     })
     
@@ -139,5 +141,124 @@ router.post('/', async (req, res) => {
   }
 })
 
-export default router
+// PUT /api/letters/:id - Update a letter (only if not delivered)
+router.put('/:id', async (req, res) => {
+  try {
+    const { id } = req.params
+    const { title, content, deliveryDate } = req.body
+    
+    // Find letter and verify ownership
+    const existingLetter = await prisma.letter.findFirst({
+      where: {
+        id,
+        userId: req.userId
+      }
+    })
+    
+    if (!existingLetter) {
+      return res.status(404).json({
+        success: false,
+        message: 'Letter not found'
+      })
+    }
+    
+    // Check if letter is already delivered
+    if (existingLetter.isDelivered) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot update a letter that has already been delivered'
+      })
+    }
+    
+    // Validate delivery date if provided
+    if (deliveryDate) {
+      const delivery = new Date(deliveryDate)
+      if (delivery <= new Date()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Delivery date must be in the future'
+        })
+      }
+    }
+    
+    // Update letter
+    const updatedLetter = await prisma.letter.update({
+      where: { id },
+      data: {
+        ...(title !== undefined && { title }),
+        ...(content !== undefined && { content }),
+        ...(deliveryDate !== undefined && { deliveryDate: new Date(deliveryDate) })
+      },
+      select: {
+        id: true,
+        title: true,
+        content: true,
+        deliveryDate: true,
+        createdAt: true,
+        updatedAt: true,
+        deliveredAt: true,
+        isDelivered: true
+      }
+    })
+    
+    res.json({
+      success: true,
+      message: 'Letter updated successfully',
+      data: updatedLetter
+    })
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error updating letter',
+      error: error.message
+    })
+  }
+})
 
+// DELETE /api/letters/:id - Delete a letter (only if not delivered)
+router.delete('/:id', async (req, res) => {
+  try {
+    const { id } = req.params
+    
+    // Find letter and verify ownership
+    const existingLetter = await prisma.letter.findFirst({
+      where: {
+        id,
+        userId: req.userId
+      }
+    })
+    
+    if (!existingLetter) {
+      return res.status(404).json({
+        success: false,
+        message: 'Letter not found'
+      })
+    }
+    
+    // Check if letter is already delivered
+    if (existingLetter.isDelivered) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot delete a letter that has already been delivered'
+      })
+    }
+    
+    // Delete letter
+    await prisma.letter.delete({
+      where: { id }
+    })
+    
+    res.json({
+      success: true,
+      message: 'Letter deleted successfully'
+    })
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error deleting letter',
+      error: error.message
+    })
+  }
+})
+
+export default router
