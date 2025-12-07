@@ -6,6 +6,7 @@ import lettersRoutes from './routes/letters.js'
 import usersRoutes from './routes/users.js'
 import authRoutes from './routes/auth.js'
 import adminRoutes from './routes/admin.js'
+import { startEmailScheduler } from './services/scheduler.js'
 
 // Load environment variables
 import { fileURLToPath } from 'url'
@@ -58,6 +59,11 @@ app.use('/api/letters', lettersRoutes)
 app.use('/api/users', usersRoutes)
 app.use('/api/admin', adminRoutes)
 
+// Start email delivery scheduler
+if (process.env.NODE_ENV !== 'test') {
+  startEmailScheduler()
+}
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({
@@ -79,5 +85,6 @@ app.use((err, req, res, next) => {
 // Start server
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`)
+  console.log(`📧 Email scheduler is active`)
 })
 

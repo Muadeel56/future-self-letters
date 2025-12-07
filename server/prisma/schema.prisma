@@ -29,9 +29,17 @@ model Letter {
   deliveredAt  DateTime?
   isDelivered  Boolean  @default(false)
 
+  // Email tracking fields
+  emailSentAt      DateTime?
+  emailStatus      String?   // 'pending', 'sent', 'failed'
+  emailRetryCount  Int       @default(0)
+  lastEmailError   String?   @db.Text
+
   @@index([userId])
   @@index([deliveryDate])
   @@index([isDelivered])
+  @@index([emailStatus])
+  @@index([deliveryDate, emailStatus])
 }
 
 
