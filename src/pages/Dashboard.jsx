@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { lettersAPI } from '../lib/api/letters.js'
 import ProtectedRoute from '../components/ProtectedRoute'
@@ -9,10 +9,22 @@ function Dashboard() {
   const [letters, setLetters] = useState([])
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
+  const location = useLocation()
+  const [successMessage, setSuccessMessage] = useState(location.state?.message || null)
 
   useEffect(() => {
     fetchLetters()
   }, [])
+
+  // Auto-dismiss success message after 5 seconds
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => {
+        setSuccessMessage(null)
+      }, 5000)
+      return () => clearTimeout(timer)
+    }
+  }, [successMessage])
 
   const fetchLetters = async () => {
     try {
@@ -36,6 +48,20 @@ function Dashboard() {
     <ProtectedRoute>
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
         <div className="container mx-auto px-4 py-8">
+          {/* Success Message */}
+          {successMessage && (
+            <div className="mb-6 p-4 bg-green-500/20 border border-green-500/50 rounded-lg text-green-200 flex items-center gap-2">
+              <span className="text-xl">✓</span>
+              <span>{successMessage}</span>
+              <button
+                onClick={() => setSuccessMessage(null)}
+                className="ml-auto text-green-300 hover:text-green-100 transition"
+              >
+                ×
+              </button>
+            </div>
+          )}
+
           {/* Header */}
           <div className="flex justify-between items-center mb-8">
             <div>
