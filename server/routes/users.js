@@ -1,5 +1,6 @@
 import express from 'express'
 import { prisma } from '../lib/prisma.js'
+import { hashPassword } from '../utils/auth.js'
 
 const router = express.Router()
 
@@ -37,7 +38,7 @@ router.get('/', async (req, res) => {
   }
 })
 
-// POST /api/users - Create a test user (for testing - no auth yet)
+// POST /api/users - Create a new user (register)
 router.post('/', async (req, res) => {
   try {
     const { email, password, name } = req.body
@@ -47,6 +48,23 @@ router.post('/', async (req, res) => {
       return res.status(400).json({
         success: false,
         message: 'Missing required fields: email, password'
+      })
+    }
+    
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid email format'
+      })
+    }
+    
+    // Password validation (minimum 6 characters)
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be at least 6 characters'
       })
     }
     
@@ -62,11 +80,14 @@ router.post('/', async (req, res) => {
       })
     }
     
-    // TODO: Hash password before saving (we'll do this in auth milestone)
+    // Hash password
+    const hashedPassword = await hashPassword(password)
+    
+    // Create user
     const user = await prisma.user.create({
       data: {
         email,
-        password, // For now, storing plain text (we'll hash it later)
+        password: hashedPassword,
         name: name || null
       },
       select: {
