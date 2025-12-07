@@ -1,5 +1,6 @@
 import express from 'express'
 import { sendTestEmail } from '../utils/email.js'
+import { triggerDeliveryNow } from '../services/scheduler.js'
 
 const router = express.Router()
 
@@ -70,6 +71,33 @@ router.post('/test-email', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error sending test email',
+      error: error.message
+    })
+  }
+})
+
+// POST /api/admin/trigger-delivery - Manually trigger letter delivery (development only)
+router.post('/trigger-delivery', async (req, res) => {
+  // Only allow in development
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(403).json({
+      success: false,
+      message: 'Manual trigger not available in production'
+    })
+  }
+
+  try {
+    const result = await triggerDeliveryNow()
+
+    res.json({
+      success: true,
+      message: 'Delivery process completed',
+      data: result
+    })
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error triggering delivery',
       error: error.message
     })
   }
