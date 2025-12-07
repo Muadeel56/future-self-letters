@@ -5,9 +5,16 @@ import { prisma } from './lib/prisma.js'
 import lettersRoutes from './routes/letters.js'
 import usersRoutes from './routes/users.js'
 import authRoutes from './routes/auth.js'
+import adminRoutes from './routes/admin.js'
 
 // Load environment variables
-dotenv.config()
+import { fileURLToPath } from 'url'
+import { dirname, join } from 'path'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+
+dotenv.config({ path: join(__dirname, '.env') })
 
 const app = express()
 const PORT = process.env.PORT || 5000
@@ -49,6 +56,7 @@ app.get('/api/test-db', async (req, res) => {
 app.use('/api/auth', authRoutes)
 app.use('/api/letters', lettersRoutes)
 app.use('/api/users', usersRoutes)
+app.use('/api/admin', adminRoutes)
 
 // 404 handler
 app.use((req, res) => {
