@@ -4,6 +4,7 @@ import dotenv from 'dotenv'
 import { prisma } from './lib/prisma.js'
 import lettersRoutes from './routes/letters.js'
 import usersRoutes from './routes/users.js'
+import authRoutes from './routes/auth.js'
 
 // Load environment variables
 dotenv.config()
@@ -45,6 +46,7 @@ app.get('/api/test-db', async (req, res) => {
 })
 
 // API Routes
+app.use('/api/auth', authRoutes)
 app.use('/api/letters', lettersRoutes)
 app.use('/api/users', usersRoutes)
 
