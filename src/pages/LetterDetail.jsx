@@ -1,16 +1,18 @@
 import { useEffect, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import ProtectedRoute from '../components/ProtectedRoute'
 import { lettersAPI } from '../lib/api/letters.js'
 
 function LetterDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
   const [letter, setLetter] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [message, setMessage] = useState(location.state?.message || null)
 
   useEffect(() => {
     fetchLetter()
@@ -99,6 +101,20 @@ function LetterDetail() {
               ← Back to Dashboard
             </button>
           </div>
+
+          {/* Message from navigation state */}
+          {message && (
+            <div className="max-w-3xl mx-auto mb-6 p-4 bg-yellow-500/20 border border-yellow-500/50 rounded-lg text-yellow-200 flex items-center gap-2">
+              <span className="text-xl">⚠️</span>
+              <span>{message}</span>
+              <button
+                onClick={() => setMessage(null)}
+                className="ml-auto text-yellow-300 hover:text-yellow-100"
+              >
+                ×
+              </button>
+            </div>
+          )}
 
           {/* Loading State */}
           {loading && (

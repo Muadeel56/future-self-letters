@@ -6,6 +6,7 @@ import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import WriteLetter from './pages/WriteLetter'
 import LetterDetail from './pages/LetterDetail'
+import EditLetter from './pages/EditLetter'
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/write" element={<WriteLetter />} />
+          <Route path="/letters/:id/edit" element={<EditLetter />} />
           <Route path="/letters/:id" element={<LetterDetail />} />
         </Routes>
       </BrowserRouter>
