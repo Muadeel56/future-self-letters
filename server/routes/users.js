@@ -1,8 +1,47 @@
 import express from 'express'
 import { prisma } from '../lib/prisma.js'
 import { hashPassword } from '../utils/auth.js'
+import { authenticate } from '../middleware/auth.js'
 
 const router = express.Router()
+
+// GET /api/users/me - Get current authenticated user
+router.get('/me', authenticate, async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.userId },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        createdAt: true,
+        _count: {
+          select: {
+            letters: true
+          }
+        }
+      }
+    })
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      })
+    }
+    
+    res.json({
+      success: true,
+      data: user
+    })
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching user',
+      error: error.message
+    })
+  }
+})
 
 // GET /api/users - Get all users (for testing)
 router.get('/', async (req, res) => {
