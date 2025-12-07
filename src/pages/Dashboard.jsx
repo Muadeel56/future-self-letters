@@ -72,7 +72,8 @@ function Dashboard() {
               {letters.map((letter) => (
                 <div
                   key={letter.id}
-                  className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10"
+                  onClick={() => navigate(`/letters/${letter.id}`)}
+                  className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 cursor-pointer hover:bg-white/10 transition"
                 >
                   <h3 className="text-xl font-semibold text-white mb-2">
                     {letter.title || 'Untitled Letter'}
