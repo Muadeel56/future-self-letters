@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { lettersAPI } from '../lib/api/letters.js'
 import ProtectedRoute from '../components/ProtectedRoute'
 import ConfirmationDialog from '../components/ConfirmationDialog'
+import { getDeliveryStatus, formatDeliveryDate } from '../lib/utils/deliveryStatus.js'
 
 // Skeleton Loader Component
 function LetterCardSkeleton() {
@@ -78,8 +79,9 @@ function Dashboard() {
   const filteredLetters = useMemo(() => {
     return letters.filter(letter => {
       if (filter === 'all') return true
-      if (filter === 'pending') return !letter.isDelivered
-      if (filter === 'delivered') return letter.isDelivered
+      if (filter === 'pending') return !letter.isDelivered && letter.emailStatus !== 'failed'
+      if (filter === 'delivered') return letter.isDelivered && letter.emailStatus === 'sent'
+      if (filter === 'failed') return letter.emailStatus === 'failed'
       return true
     })
   }, [letters, filter])
@@ -168,16 +170,6 @@ function Dashboard() {
     })
   }
 
-  const calculateDaysUntilDelivery = (deliveryDate) => {
-    const delivery = new Date(deliveryDate)
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    delivery.setHours(0, 0, 0, 0)
-    const diffTime = delivery - today
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-    return diffDays
-  }
-
   // Get empty state message based on filter
   const getEmptyStateMessage = () => {
     if (searchQuery.trim()) {
@@ -205,6 +197,13 @@ function Dashboard() {
       return {
         title: 'No delivered letters',
         message: 'Your letters are still pending delivery',
+        showCTA: false
+      }
+    }
+    if (filter === 'failed') {
+      return {
+        title: 'No failed deliveries',
+        message: 'All your letters have been sent successfully!',
         showCTA: false
       }
     }
@@ -332,6 +331,16 @@ function Dashboard() {
                 >
                   Delivered
                 </button>
+                <button
+                  onClick={() => setFilter('failed')}
+                  className={`px-4 py-2 rounded-lg font-semibold transition ${
+                    filter === 'failed'
+                      ? 'bg-red-500 text-white'
+                      : 'bg-white/5 border border-white/20 text-white hover:bg-white/10'
+                  }`}
+                >
+                  Failed
+                </button>
               </div>
 
               {/* Sort Dropdown */}
@@ -378,8 +387,7 @@ function Dashboard() {
             /* Letters Grid */
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {searchFiltered.map((letter) => {
-                const daysUntil = calculateDaysUntilDelivery(letter.deliveryDate)
-                const isPending = !letter.isDelivered
+                const status = getDeliveryStatus(letter)
 
                 return (
                   <div
@@ -401,25 +409,18 @@ function Dashboard() {
 
                     {/* Delivery Date and Status */}
                     <div className="mb-4 space-y-2">
-                      <div className="flex items-center gap-2 text-sm text-purple-300">
-                        <span>📅</span>
-                        <span className="font-medium">{formatDate(letter.deliveryDate)}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`px-3 py-1 rounded-lg text-xs font-semibold ${
-                            letter.isDelivered
-                              ? 'text-green-400 bg-green-500/20 border border-green-500/50'
-                              : 'text-yellow-400 bg-yellow-500/20 border border-yellow-500/50'
-                          }`}
-                        >
-                          {letter.isDelivered ? '✓ Delivered' : '⏰ Pending'}
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs text-purple-300">
+                          📅 {formatDeliveryDate(letter.deliveryDate)}
                         </span>
-                        {isPending && daysUntil > 0 && (
-                          <span className="text-xs text-purple-300">
-                            {daysUntil === 1 ? '1 day left' : `${daysUntil} days left`}
-                          </span>
-                        )}
+                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                          status.color === 'green' ? 'bg-green-500/20 text-green-400' :
+                          status.color === 'red' ? 'bg-red-500/20 text-red-400' :
+                          status.color === 'yellow' ? 'bg-yellow-500/20 text-yellow-400' :
+                          'bg-blue-500/20 text-blue-400'
+                        }`}>
+                          {status.icon} {status.text}
+                        </span>
                       </div>
                     </div>
 
