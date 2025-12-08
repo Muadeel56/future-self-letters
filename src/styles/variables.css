@@ -1,0 +1,172 @@
+:root {
+  /* ============================================
+     COLOR SYSTEM - Primary
+     ============================================ */
+  --color-primary: #a78bfa;
+  --color-primary-dark: #8b5cf6;
+  --color-primary-light: #c4b5fd;
+  --color-primary-darker: #7c3aed;
+  --color-primary-lighter: #ddd6fe;
+
+  /* ============================================
+     COLOR SYSTEM - Secondary
+     ============================================ */
+  --color-secondary: #64748b;
+  --color-secondary-dark: #475569;
+  --color-secondary-light: #94a3b8;
+
+  /* ============================================
+     COLOR SYSTEM - Status Colors
+     ============================================ */
+  --color-success: #10b981;
+  --color-success-dark: #059669;
+  --color-success-light: #34d399;
+
+  --color-error: #ef4444;
+  --color-error-dark: #dc2626;
+  --color-error-light: #f87171;
+
+  --color-warning: #f59e0b;
+  --color-warning-dark: #d97706;
+  --color-warning-light: #fbbf24;
+
+  --color-info: #3b82f6;
+  --color-info-dark: #2563eb;
+  --color-info-light: #60a5fa;
+
+  /* ============================================
+     BACKGROUND COLORS - Dark Theme (Default)
+     ============================================ */
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+  --bg-quaternary: #475569;
+
+  --bg-overlay: rgba(15, 23, 42, 0.8);
+  --bg-overlay-light: rgba(15, 23, 42, 0.5);
+
+  --bg-card: rgba(30, 41, 59, 0.5);
+  --bg-card-hover: rgba(30, 41, 59, 0.7);
+
+  --bg-input: rgba(255, 255, 255, 0.05);
+  --bg-input-focus: rgba(255, 255, 255, 0.1);
+
+  /* ============================================
+     TEXT COLORS - Dark Theme (Default)
+     ============================================ */
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-tertiary: #94a3b8;
+  --text-muted: #64748b;
+
+  --text-inverse: #0f172a;
+  --text-on-primary: #ffffff;
+
+  /* ============================================
+     BORDER COLORS
+     ============================================ */
+  --border-color: rgba(255, 255, 255, 0.1);
+  --border-color-light: rgba(255, 255, 255, 0.05);
+  --border-color-dark: rgba(255, 255, 255, 0.2);
+  --border-color-focus: rgba(167, 139, 250, 0.5);
+
+  /* ============================================
+     SPACING SCALE
+     ============================================ */
+  --spacing-xs: 0.25rem;    /* 4px */
+  --spacing-sm: 0.5rem;     /* 8px */
+  --spacing-md: 1rem;       /* 16px */
+  --spacing-lg: 1.5rem;     /* 24px */
+  --spacing-xl: 2rem;       /* 32px */
+  --spacing-2xl: 3rem;      /* 48px */
+  --spacing-3xl: 4rem;      /* 64px */
+
+  /* ============================================
+     TYPOGRAPHY - Font Sizes
+     ============================================ */
+  --font-size-xs: 0.75rem;      /* 12px */
+  --font-size-sm: 0.875rem;     /* 14px */
+  --font-size-base: 1rem;       /* 16px */
+  --font-size-lg: 1.125rem;      /* 18px */
+  --font-size-xl: 1.25rem;       /* 20px */
+  --font-size-2xl: 1.5rem;       /* 24px */
+  --font-size-3xl: 1.875rem;     /* 30px */
+  --font-size-4xl: 2.25rem;     /* 36px */
+  --font-size-5xl: 3rem;         /* 48px */
+  --font-size-6xl: 3.75rem;      /* 60px */
+
+  /* ============================================
+     TYPOGRAPHY - Font Weights
+     ============================================ */
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* ============================================
+     TYPOGRAPHY - Line Heights
+     ============================================ */
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+  --line-height-loose: 2;
+
+  /* ============================================
+     BORDER RADIUS
+     ============================================ */
+  --border-radius-none: 0;
+  --border-radius-sm: 0.375rem;   /* 6px */
+  --border-radius-md: 0.5rem;    /* 8px */
+  --border-radius-lg: 0.75rem;    /* 12px */
+  --border-radius-xl: 1rem;       /* 16px */
+  --border-radius-2xl: 1.5rem;    /* 24px */
+  --border-radius-full: 9999px;
+
+  /* ============================================
+     BORDER WIDTH
+     ============================================ */
+  --border-width: 1px;
+  --border-width-thick: 2px;
+  --border-width-thin: 0.5px;
+
+  /* ============================================
+     SHADOWS
+     ============================================ */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+
+  --shadow-primary: 0 10px 15px -3px rgba(167, 139, 250, 0.3), 0 4px 6px -2px rgba(167, 139, 250, 0.2);
+  --shadow-primary-lg: 0 20px 25px -5px rgba(167, 139, 250, 0.3), 0 10px 10px -5px rgba(167, 139, 250, 0.2);
+
+  /* ============================================
+     TRANSITIONS
+     ============================================ */
+  --transition-fast: 150ms ease-in-out;
+  --transition-base: 200ms ease-in-out;
+  --transition-slow: 300ms ease-in-out;
+  --transition-slower: 500ms ease-in-out;
+
+  /* ============================================
+     Z-INDEX SCALE
+     ============================================ */
+  --z-base: 0;
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+
+  /* ============================================
+     OPACITY
+     ============================================ */
+  --opacity-disabled: 0.5;
+  --opacity-hover: 0.8;
+  --opacity-pressed: 0.6;
+}
+
