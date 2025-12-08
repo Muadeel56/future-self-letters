@@ -7,6 +7,30 @@ const router = express.Router()
 // All routes require authentication
 router.use(authenticate)
 
+// GET /api/letters/stats - Get delivery statistics (must be before /:id route)
+router.get('/stats', async (req, res) => {
+  try {
+    const stats = await prisma.letter.groupBy({
+      by: ['emailStatus', 'isDelivered'],
+      where: {
+        userId: req.userId
+      },
+      _count: true
+    })
+    
+    res.json({
+      success: true,
+      data: stats
+    })
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching statistics',
+      error: error.message
+    })
+  }
+})
+
 // GET /api/letters - Get all letters for the authenticated user
 router.get('/', async (req, res) => {
   try {
@@ -25,7 +49,11 @@ router.get('/', async (req, res) => {
         createdAt: true,
         updatedAt: true,
         deliveredAt: true,
-        isDelivered: true
+        isDelivered: true,
+        emailSentAt: true,
+        emailStatus: true,
+        emailRetryCount: true,
+        lastEmailError: true
       }
     })
     
@@ -61,7 +89,11 @@ router.get('/:id', async (req, res) => {
         createdAt: true,
         updatedAt: true,
         deliveredAt: true,
-        isDelivered: true
+        isDelivered: true,
+        emailSentAt: true,
+        emailStatus: true,
+        emailRetryCount: true,
+        lastEmailError: true
       }
     })
     
@@ -123,7 +155,11 @@ router.post('/', async (req, res) => {
         createdAt: true,
         updatedAt: true,
         deliveredAt: true,
-        isDelivered: true
+        isDelivered: true,
+        emailSentAt: true,
+        emailStatus: true,
+        emailRetryCount: true,
+        lastEmailError: true
       }
     })
     
@@ -197,7 +233,11 @@ router.put('/:id', async (req, res) => {
         createdAt: true,
         updatedAt: true,
         deliveredAt: true,
-        isDelivered: true
+        isDelivered: true,
+        emailSentAt: true,
+        emailStatus: true,
+        emailRetryCount: true,
+        lastEmailError: true
       }
     })
     

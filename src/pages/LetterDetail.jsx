@@ -3,6 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import ProtectedRoute from '../components/ProtectedRoute'
 import ConfirmationDialog from '../components/ConfirmationDialog'
 import { lettersAPI } from '../lib/api/letters.js'
+import { getDeliveryStatus, formatDeliveryDate, getDaysUntilDelivery } from '../lib/utils/deliveryStatus.js'
 
 function LetterDetail() {
   const { id } = useParams()
@@ -48,17 +49,6 @@ function LetterDetail() {
       month: 'long', 
       day: 'numeric' 
     })
-  }
-
-  const calculateDaysUntilDelivery = (deliveryDate) => {
-    if (!deliveryDate) return 0
-    const delivery = new Date(deliveryDate)
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    delivery.setHours(0, 0, 0, 0)
-    const diffTime = delivery - today
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-    return diffDays
   }
 
   const handleEdit = () => {
@@ -125,7 +115,8 @@ function LetterDetail() {
     setError(null)
   }
 
-  const daysUntilDelivery = letter ? calculateDaysUntilDelivery(letter.deliveryDate) : 0
+  const daysUntilDelivery = letter ? getDaysUntilDelivery(letter.deliveryDate) : 0
+  const status = letter ? getDeliveryStatus(letter) : null
 
   return (
     <ProtectedRoute>
@@ -250,19 +241,63 @@ function LetterDetail() {
                       </span>
                     </div>
                   )}
+                </div>
 
-                  {/* Status Badge */}
-                  <div className="flex items-center gap-3">
-                    <span className="text-xl">Status:</span>
-                    <span
-                      className={`px-4 py-2 rounded-lg font-semibold ${
-                        letter.isDelivered
-                          ? 'text-green-400 bg-green-500/20 border border-green-500/50'
-                          : 'text-yellow-400 bg-yellow-500/20 border border-yellow-500/50'
-                      }`}
-                    >
-                      {letter.isDelivered ? '✓ Delivered' : 'Pending'}
-                    </span>
+                {/* Delivery Status Section */}
+                <div className="mt-6 space-y-4">
+                  <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10">
+                    <h3 className="text-lg font-semibold text-white mb-3">Delivery Status</h3>
+                    
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-purple-200">Status:</span>
+                        <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                          status.color === 'green' ? 'bg-green-500/20 text-green-400' :
+                          status.color === 'red' ? 'bg-red-500/20 text-red-400' :
+                          status.color === 'yellow' ? 'bg-yellow-500/20 text-yellow-400' :
+                          'bg-blue-500/20 text-blue-400'
+                        }`}>
+                          {status.icon} {status.text}
+                        </span>
+                      </div>
+                      
+                      {letter.deliveryDate && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-purple-200">Scheduled for:</span>
+                          <span className="text-white">{formatDeliveryDate(letter.deliveryDate)}</span>
+                        </div>
+                      )}
+                      
+                      {letter.emailSentAt && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-purple-200">Sent on:</span>
+                          <span className="text-white">{formatDeliveryDate(letter.emailSentAt)}</span>
+                        </div>
+                      )}
+                      
+                      {!letter.isDelivered && letter.deliveryDate && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-purple-200">Days until delivery:</span>
+                          <span className="text-white">
+                            {getDaysUntilDelivery(letter.deliveryDate)} day(s)
+                          </span>
+                        </div>
+                      )}
+                      
+                      {letter.emailRetryCount > 0 && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-purple-200">Retry attempts:</span>
+                          <span className="text-white">{letter.emailRetryCount}</span>
+                        </div>
+                      )}
+                      
+                      {letter.lastEmailError && (
+                        <div className="mt-3 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+                          <p className="text-xs text-red-300 font-semibold mb-1">Last Error:</p>
+                          <p className="text-xs text-red-200">{letter.lastEmailError}</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
